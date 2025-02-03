@@ -33,7 +33,7 @@ This node has one main parameter:
 
 * **Show**. The node displays something only when this parameter is enabled.
 
-Most of parameters of this node are groupped in rows; for each type of
+Most of parameters of this node are grouped in rows; for each type of
 information this node can display, there are three parameters: whether to
 display it, the color to be used, and point size / line width to be used.
 
@@ -54,6 +54,13 @@ The parameters of the node are (in this order):
 
 .. image:: https://user-images.githubusercontent.com/14288520/190168448-b0691bc4-392f-4f83-bb5b-926da7b64b8e.png
   :target: https://user-images.githubusercontent.com/14288520/190168448-b0691bc4-392f-4f83-bb5b-926da7b64b8e.png
+
+* **Display Arrows**, **Arrows Color**, **Arrows Line Width**. Control display
+  of small arrows which indicate the direction of curve (direction in which
+  curve's T parameter grows). Curve arrows are not shown by default.
+
+.. image:: ../../../docs/assets/nodes/viz/viewer_draw_curve_arrows.png
+   :target: ../../../docs/assets/nodes/viz/viewer_draw_curve_arrows.png
 
 -------------
 
@@ -76,12 +83,30 @@ The parameters of the node are (in this order):
 
 -------------
 
-* **Display Node Points**, **Node Points Color**, **Node Points Size**. Control
+* **Display Node Points** (N icon), **Node Points Color**, **Node Points Size**. Control
   display of curve's node points, for NURBS and NURBS-like curves. Nodes are
   not shown by default.
 
 .. image:: https://user-images.githubusercontent.com/14288520/190176111-16a43da1-2fd4-4b1c-bf74-78712bcd6a3f.png
   :target: https://user-images.githubusercontent.com/14288520/190176111-16a43da1-2fd4-4b1c-bf74-78712bcd6a3f.png
+
+-------------
+
+* **Display Curvature Comb** (C icon), **Comb Color**, **Comb Line Width**. Control
+  display of curve's curvature comb. Curvature comb is not shown by default.
+* **Scale**. This parameter is available only when **Display Curvature Comb**
+  parameter is enabled. This defines the scaling applied to curve normals used
+  to display the curvature comb. The default value of 1.0 means that normals
+  length will be equal to curve's curvature in corresponding points.
+
+-------------
+
+* **Indicate Curvature** (G icon), **Curvature Color**. If enabled, curve's
+  curvature is indicated by drawing a curve with a color gradient: the color
+  specified in **Curve Line Color** parameter is used to draw the most flat
+  curve segments, and the color specified in the **Curvature Color** parameter
+  is used to draw the places where curve's curvature hast the greatest value.
+  Disabled by default.
 
 Operators
 ---------
@@ -101,6 +126,16 @@ Example of Usage
 
 .. image:: https://user-images.githubusercontent.com/14288520/190133906-61748350-414f-4d3e-8e71-2bd6be30597c.png
   :target: https://user-images.githubusercontent.com/14288520/190133906-61748350-414f-4d3e-8e71-2bd6be30597c.png
+
+Example of curvature comb display:
+
+.. image:: https://user-images.githubusercontent.com/284644/206860681-a70d93af-a72b-4dcb-bf36-3678135b835a.png
+  :target: https://user-images.githubusercontent.com/284644/206860681-a70d93af-a72b-4dcb-bf36-3678135b835a.png
+
+Example of curvature indication by color gradient:
+
+.. image:: https://user-images.githubusercontent.com/284644/206875486-4f018e3e-4b90-4b6d-9df1-28df129e65d2.png
+  :target: https://user-images.githubusercontent.com/284644/206875486-4f018e3e-4b90-4b6d-9df1-28df129e65d2.png
 
 * Generator-> :doc:`Line </nodes/generator/line_mk4>`
 * Transform-> :doc:`Randomize </nodes/transforms/randomize>`
