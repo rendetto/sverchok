@@ -72,7 +72,7 @@ el.replaceWith(d);
         else:
             curve = BSpline.Curve(normalize_kv = normalize_knots)
         if degree == 0:
-            raise Exception(&#34;Zero degree!?&#34;)
+            raise AlgorithmError(&#34;Zero degree!?&#34;)
         curve.degree = degree
         if isinstance(control_points, np.ndarray):
             control_points = control_points.tolist()
@@ -96,7 +96,7 @@ el.replaceWith(d);
     @classmethod
     def interpolate(cls, degree, points, metric=&#39;DISTANCE&#39;, **kwargs):
         if metric not in {&#39;DISTANCE&#39;, &#39;CENTRIPETAL&#39;}:
-            raise Exception(f&#34;`{metric}` metric is not supported by interpolation routine of Geomdl library; supported are DISTANCE and CENTRIPETAL&#34;)
+            raise SvExternalLibraryException(f&#34;`{metric}` metric is not supported by interpolation routine of Geomdl library; supported are DISTANCE and CENTRIPETAL&#34;)
         centripetal = metric == &#39;CENTRIPETAL&#39;
         curve = fitting.interpolate_curve(points.tolist(), degree, centripetal=centripetal)
         return SvGeomdlCurve(curve)
@@ -212,7 +212,7 @@ el.replaceWith(d);
 
     def remove_knot(self, u, count=1, target=None, if_possible=False, tolerance=None):
         if (count is None) == (target is None):
-            raise Exception(&#34;Either count or target must be specified&#34;)
+            raise ArgumentError(&#34;Either count or target must be specified&#34;)
 
         knotvector = self.get_knotvector()
         orig_multiplicity = sv_knotvector.find_multiplicity(knotvector, u)
@@ -270,24 +270,6 @@ el.replaceWith(d);
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="sverchok.utils.curve.nurbs.SvGeomdlCurve.derivatives_array"><code class="name flex">
-<span>def <span class="ident">derivatives_array</span></span>(<span>self, n, ts, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def derivatives_array(self, n, ts, tangent_delta=None):
-    def derivatives(t):
-        result = self.curve.derivatives(t, order=n)
-        return np.array(result[1:])
-    result = np.vectorize(derivatives, signature=&#39;()-&gt;(n,3)&#39;)(ts)
-    result = np.transpose(result, axes=(1, 0, 2))
-    return result</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
 <dt id="sverchok.utils.curve.nurbs.SvGeomdlCurve.extrude_along_vector"><code class="name flex">
 <span>def <span class="ident">extrude_along_vector</span></span>(<span>self, vector)</span>
 </code></dt>
@@ -358,7 +340,7 @@ el.replaceWith(d);
 </summary>
 <pre><code class="python">def remove_knot(self, u, count=1, target=None, if_possible=False, tolerance=None):
     if (count is None) == (target is None):
-        raise Exception(&#34;Either count or target must be specified&#34;)
+        raise ArgumentError(&#34;Either count or target must be specified&#34;)
 
     knotvector = self.get_knotvector()
     orig_multiplicity = sv_knotvector.find_multiplicity(knotvector, u)
@@ -383,60 +365,6 @@ el.replaceWith(d);
 </details>
 <div class="desc"></div>
 </dd>
-<dt id="sverchok.utils.curve.nurbs.SvGeomdlCurve.second_derivative"><code class="name flex">
-<span>def <span class="ident">second_derivative</span></span>(<span>self, t, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def second_derivative(self, t, tangent_delta=None):
-    p, first, second = self.curve.derivatives(t, order=2)
-    return np.array(second)</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvGeomdlCurve.second_derivative_array"><code class="name flex">
-<span>def <span class="ident">second_derivative_array</span></span>(<span>self, ts, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def second_derivative_array(self, ts, tangent_delta=None):
-    return np.vectorize(self.second_derivative, signature=&#39;()-&gt;(3)&#39;)(ts)</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvGeomdlCurve.third_derivative"><code class="name flex">
-<span>def <span class="ident">third_derivative</span></span>(<span>self, t, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def third_derivative(self, t, tangent_delta=None):
-    p, first, second, third = self.curve.derivatives(t, order=3)
-    return np.array(third)</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvGeomdlCurve.third_derivative_array"><code class="name flex">
-<span>def <span class="ident">third_derivative_array</span></span>(<span>self, ts, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def third_derivative_array(self, ts, tangent_delta=None):
-    return np.vectorize(self.third_derivative, signature=&#39;()-&gt;(3)&#39;)(ts)</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -445,23 +373,34 @@ el.replaceWith(d);
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.calc_linear_segment_knots" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.calc_linear_segment_knots">calc_linear_segment_knots</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.cut_segment" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.cut_segment">cut_segment</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_homogenous_control_points" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_homogenous_control_points">get_homogenous_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_knotvector" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_knotvector">get_knotvector</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_min_continuity" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_min_continuity">get_min_continuity</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_nurbs_implementation" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_nurbs_implementation">get_nurbs_implementation</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_weights" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_weights">get_weights</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_inside_sphere" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_inside_sphere">is_inside_sphere</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_line" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_line">is_line</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_strongly_outside_sphere" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_strongly_outside_sphere">is_strongly_outside_sphere</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier">to_bezier</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier_segments" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier_segments">to_bezier_segments</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_nurbs" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_nurbs">to_nurbs</a></code></li>
@@ -717,7 +656,7 @@ el.replaceWith(d);
         # Implementation adapted from Geomdl
 
         if (count is None) == (target is None):
-            raise Exception(&#34;Either count or target must be specified&#34;)
+            raise ArgumentError(&#34;Either count or target must be specified&#34;)
 
         orig_multiplicity = sv_knotvector.find_multiplicity(self.get_knotvector(), u)
 
@@ -893,34 +832,6 @@ el.replaceWith(d);
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.derivatives_array"><code class="name flex">
-<span>def <span class="ident">derivatives_array</span></span>(<span>self, n, ts, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def derivatives_array(self, n, ts, tangent_delta=None):
-    result = []
-    if n &gt;= 1:
-        numerator, denominator = self.fraction(0, ts)
-        curve = numerator / denominator
-        numerator1, denominator1 = self.fraction(1, ts)
-        curve1 = (numerator1 - curve*denominator1) / denominator
-        result.append(curve1)
-    if n &gt;= 2:
-        numerator2, denominator2 = self.fraction(2, ts)
-        curve2 = (numerator2 - 2*curve1*denominator1 - curve*denominator2) / denominator
-        result.append(curve2)
-    if n &gt;= 3:
-        numerator3, denominator3 = self.fraction(3, ts)
-        curve3 = (numerator3 - 3*curve2*denominator1 - 3*curve1*denominator2 - curve*denominator3) / denominator
-        result.append(curve3)
-    return result</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
 <dt id="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.extrude_along_vector"><code class="name flex">
 <span>def <span class="ident">extrude_along_vector</span></span>(<span>self, vector)</span>
 </code></dt>
@@ -1078,7 +989,7 @@ el.replaceWith(d);
     # Implementation adapted from Geomdl
 
     if (count is None) == (target is None):
-        raise Exception(&#34;Either count or target must be specified&#34;)
+        raise ArgumentError(&#34;Either count or target must be specified&#34;)
 
     orig_multiplicity = sv_knotvector.find_multiplicity(self.get_knotvector(), u)
 
@@ -1233,64 +1144,6 @@ el.replaceWith(d);
 </details>
 <div class="desc"></div>
 </dd>
-<dt id="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.second_derivative"><code class="name flex">
-<span>def <span class="ident">second_derivative</span></span>(<span>self, t, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def second_derivative(self, t, tangent_delta=None):
-    return self.second_derivative_array(np.array([t]))[0]</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.second_derivative_array"><code class="name flex">
-<span>def <span class="ident">second_derivative_array</span></span>(<span>self, ts, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def second_derivative_array(self, ts, tangent_delta=None):
-    # numerator&#39;&#39; = (curve * denominator)&#39;&#39; =
-    #  = curve&#39;&#39; * denominator + 2 * curve&#39; * denominator&#39; + curve * denominator&#39;&#39;
-    numerator, denominator = self.fraction(0, ts)
-    curve = numerator / denominator
-    numerator1, denominator1 = self.fraction(1, ts)
-    curve1 = (numerator1 - curve*denominator1) / denominator
-    numerator2, denominator2 = self.fraction(2, ts)
-    curve2 = (numerator2 - 2*curve1*denominator1 - curve*denominator2) / denominator
-    return curve2</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.third_derivative_array"><code class="name flex">
-<span>def <span class="ident">third_derivative_array</span></span>(<span>self, ts, tangent_delta=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def third_derivative_array(self, ts, tangent_delta=None):
-    # numerator&#39;&#39;&#39; = (curve * denominator)&#39;&#39;&#39; = 
-    #  = curve&#39;&#39;&#39; * denominator + 3 * curve&#39;&#39; * denominator&#39; + 3 * curve&#39; * denominator&#39;&#39; + denominator&#39;&#39;&#39;
-    numerator, denominator = self.fraction(0, ts)
-    curve = numerator / denominator
-    numerator1, denominator1 = self.fraction(1, ts)
-    curve1 = (numerator1 - curve*denominator1) / denominator
-    numerator2, denominator2 = self.fraction(2, ts)
-    curve2 = (numerator2 - 2*curve1*denominator1 - curve*denominator2) / denominator
-    numerator3, denominator3 = self.fraction(3, ts)
-
-    curve3 = (numerator3 - 3*curve2*denominator1 - 3*curve1*denominator2 - curve*denominator3) / denominator
-    return curve3</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1299,23 +1152,34 @@ el.replaceWith(d);
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.calc_linear_segment_knots" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.calc_linear_segment_knots">calc_linear_segment_knots</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.cut_segment" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.cut_segment">cut_segment</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_homogenous_control_points" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_homogenous_control_points">get_homogenous_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_knotvector" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_knotvector">get_knotvector</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_min_continuity" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_min_continuity">get_min_continuity</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_nurbs_implementation" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_nurbs_implementation">get_nurbs_implementation</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_weights" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_weights">get_weights</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_inside_sphere" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_inside_sphere">is_inside_sphere</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_line" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_line">is_line</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_strongly_outside_sphere" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_strongly_outside_sphere">is_strongly_outside_sphere</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier">to_bezier</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier_segments" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_bezier_segments">to_bezier_segments</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_nurbs" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_nurbs">to_nurbs</a></code></li>
@@ -1386,6 +1250,12 @@ el.replaceWith(d);
             self._bounding_box = bounding_box(self.get_control_points())
         return self._bounding_box
 
+    def get_tilt_pairs(self):
+        if hasattr(self, &#39;tilt_pairs&#39;):
+            return self.tilt_pairs
+        else:
+            return []
+
     def concatenate(self, curve2, tolerance=1e-6, remove_knots=False):
 
         curve1 = self
@@ -1406,7 +1276,7 @@ el.replaceWith(d);
                 pt2 = curve2.evaluate(c2_start)
             dpt = np.linalg.norm(pt1 - pt2)
             if dpt &gt; tolerance:
-                raise UnsupportedCurveTypeException(f&#34;Curve end points do not match: C1({c1_end}) = {pt1} != C2({c2_start}) = {pt2}, distance={dpt}&#34;)
+                raise CurveEndpointsNotMatchingException(f&#34;C1({c1_end}) = {pt1} != C2({c2_start}) = {pt2}, distance={dpt}&#34;)
 
             #cp1 = curve1.get_control_points()[-1]
             #cp2 = curve2.get_control_points()[0]
@@ -1545,10 +1415,10 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         Return a string identifying the implementation of NURBS mathematics used by this curve.
         &#34;&#34;&#34;
-        raise Exception(&#34;NURBS implementation is not defined&#34;)
+        raise NotImplementedError(&#34;NURBS implementation is not defined&#34;)
 
     def get_control_points(self):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_weights(self):
         &#34;&#34;&#34;
@@ -1557,7 +1427,7 @@ el.replaceWith(d);
         Returns:
             np.array of shape (k,)
         &#34;&#34;&#34;
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_homogenous_control_points(self):
         &#34;&#34;&#34;
@@ -1596,10 +1466,10 @@ el.replaceWith(d);
         Returns:
             np.array of shape (X,)
         &#34;&#34;&#34;
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_degree(self):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def calc_greville_ts(self):
         n = len(self.get_control_points())
@@ -1613,12 +1483,12 @@ el.replaceWith(d);
         if delta is None and target is None:
             delta = 1
         if delta is not None and target is not None:
-            raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+            raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
         degree = self.get_degree()
         if delta is None:
             delta = target - degree
             if delta &lt; 0:
-                raise Exception(f&#34;Curve already has degree {degree}, which is greater than target {target}&#34;)
+                raise SvInvalidInputException(f&#34;Curve already has degree {degree}, which is greater than target {target}&#34;)
         if delta == 0:
             return self
 
@@ -1648,12 +1518,12 @@ el.replaceWith(d);
         if delta is None and target is None:
             delta = 1
         if delta is not None and target is not None:
-            raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+            raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
         orig_degree = self.get_degree()
         if delta is None:
             delta = orig_degree - target
             if delta &lt; 0:
-                raise Exception(f&#34;Curve already has degree {orig_degree}, which is greater than target {target}&#34;)
+                raise SvInvalidInputException(f&#34;Curve already has degree {orig_degree}, which is greater than target {target}&#34;)
         if delta == 0:
             return self
 
@@ -1776,10 +1646,10 @@ el.replaceWith(d);
         #print(f&#34;S: ctlpts1: {len(control_points_1)}, 2: {len(control_points_2)}&#34;)
         kv_error = sv_knotvector.check(curve.get_degree(), knotvector1, len(control_points_1))
         if kv_error is not None:
-            raise Exception(kv_error)
+            raise AlgorithmError(kv_error)
         kv_error = sv_knotvector.check(curve.get_degree(), knotvector2, len(control_points_2))
         if kv_error is not None:
-            raise Exception(kv_error)
+            raise AlgorithmError(kv_error)
 
         curve1 = (knotvector1, control_points_1, weights_1)
         curve2 = (knotvector2, control_points_2, weights_2)
@@ -1838,7 +1708,7 @@ el.replaceWith(d);
         if new_t_min &gt; t_min:
             _, params = curve._split_at(new_t_min)
             if params is None:
-                raise Exception(f&#34;Cut 1: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
+                raise AlgorithmError(f&#34;Cut 1: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
             knotvector, control_points, weights = params
             curve = SvNurbsCurve.build(implementation,
                         degree, knotvector,
@@ -1847,7 +1717,7 @@ el.replaceWith(d);
             if new_t_max &gt; new_t_min:
                 params, _ = curve._split_at(new_t_max)
                 if params is None:
-                    raise Exception(f&#34;Cut 2: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
+                    raise AlgorithmError(f&#34;Cut 2: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
                 knotvector, control_points, weights = params
                 curve = SvNurbsCurve.build(implementation,
                             degree, knotvector,
@@ -1925,7 +1795,7 @@ el.replaceWith(d);
         direction = end - begin
         if np.linalg.norm(direction) &lt; tolerance:
             return True
-        line = LineEquation.from_direction_and_point(direction, begin).normalized()
+        line = LineEquation.from_direction_and_point(direction, begin, epsilon=tolerance).normalized()
         distances = line.distance_to_points(cpts)
         # Technically, this means that all control points lie
         # inside the cylinder, defined as &#34;distance from line &lt; tolerance&#34;;
@@ -2014,7 +1884,7 @@ el.replaceWith(d);
     def bezier_to_taylor(self):
         # Refer to The NURBS Book, 2nd ed., p. 6.6
         if not self.is_bezier():
-            raise Exception(&#34;Non-Bezier NURBS curve cannot be converted to Taylor curve&#34;)
+            raise NotImplementedError(&#34;Non-Bezier NURBS curve cannot be converted to Taylor curve&#34;)
 
         p = self.get_degree()
         cpts = self.get_homogenous_control_points()
@@ -2040,7 +1910,7 @@ el.replaceWith(d);
 
     def to_knotvector(self, curve2):
         if curve2.get_degree() != self.get_degree():
-            raise Exception(&#34;Degrees of the curves are not equal&#34;)
+            raise ArgumentError(&#34;Degrees of the curves are not equal&#34;)
         curve = self
         new_kv = curve2.get_knotvector()
         curve = curve.reparametrize(new_kv[0], new_kv[-1])
@@ -2053,10 +1923,10 @@ el.replaceWith(d);
         return curve
 
     def insert_knot(self, u, count=1, if_possible=False):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def remove_knot(self, u, count=1, target=None, tolerance=1e-6):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_min_continuity(self):
         &#34;&#34;&#34;
@@ -2094,6 +1964,14 @@ el.replaceWith(d);
                     self.get_knotvector(),
                     new_controls,
                     self.get_weights())
+
+    def mirror(self, axis):
+        m = np.eye(3)
+        m[axis,axis] = -1
+        return self.transform(m, None)
+
+    def translate(self, vector):
+        return self.transform(None, vector)
 
     def is_inside_sphere(self, sphere_center, sphere_radius):
         &#34;&#34;&#34;
@@ -2133,7 +2011,7 @@ el.replaceWith(d);
         # available at: https://hal.inria.fr/inria-00518359
 
         if not self.is_bezier():
-            raise Exception(&#34;this method is not applicable to non-Bezier curves&#34;)
+            raise ArgumentError(&#34;this method is not applicable to non-Bezier curves&#34;)
 
         square_coeffs = self.bezier_distance_coeffs(sphere_center)
         return (square_coeffs &gt;= sphere_radius**2).all()
@@ -2185,7 +2063,7 @@ el.replaceWith(d);
     def split_at_fracture_points(self, order=1, direction_only = True, or_worse = True, angle_tolerance = 1e-6, amplitude_tolerance=1e-6, return_details = False):
 
         if order not in {1,2,3}:
-            raise Exception(f&#34;Unsupported discontinuity order: {order}&#34;)
+            raise ArgumentError(f&#34;Unsupported discontinuity order: {order}&#34;)
 
         def is_fracture(segment1, segment2):
             if order == 1:
@@ -2376,7 +2254,7 @@ if this curve can not be converted to NURBS.</p></div>
     # available at: https://hal.inria.fr/inria-00518359
 
     if not self.is_bezier():
-        raise Exception(&#34;this method is not applicable to non-Bezier curves&#34;)
+        raise ArgumentError(&#34;this method is not applicable to non-Bezier curves&#34;)
 
     square_coeffs = self.bezier_distance_coeffs(sphere_center)
     return (square_coeffs &gt;= sphere_radius**2).all()</code></pre>
@@ -2394,7 +2272,7 @@ if this curve can not be converted to NURBS.</p></div>
 <pre><code class="python">def bezier_to_taylor(self):
     # Refer to The NURBS Book, 2nd ed., p. 6.6
     if not self.is_bezier():
-        raise Exception(&#34;Non-Bezier NURBS curve cannot be converted to Taylor curve&#34;)
+        raise NotImplementedError(&#34;Non-Bezier NURBS curve cannot be converted to Taylor curve&#34;)
 
     p = self.get_degree()
     cpts = self.get_homogenous_control_points()
@@ -2511,7 +2389,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
             pt2 = curve2.evaluate(c2_start)
         dpt = np.linalg.norm(pt1 - pt2)
         if dpt &gt; tolerance:
-            raise UnsupportedCurveTypeException(f&#34;Curve end points do not match: C1({c1_end}) = {pt1} != C2({c2_start}) = {pt2}, distance={dpt}&#34;)
+            raise CurveEndpointsNotMatchingException(f&#34;C1({c1_end}) = {pt1} != C2({c2_start}) = {pt2}, distance={dpt}&#34;)
 
         #cp1 = curve1.get_control_points()[-1]
         #cp2 = curve2.get_control_points()[0]
@@ -2607,7 +2485,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
     if new_t_min &gt; t_min:
         _, params = curve._split_at(new_t_min)
         if params is None:
-            raise Exception(f&#34;Cut 1: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
+            raise AlgorithmError(f&#34;Cut 1: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
         knotvector, control_points, weights = params
         curve = SvNurbsCurve.build(implementation,
                     degree, knotvector,
@@ -2616,7 +2494,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
         if new_t_max &gt; new_t_min:
             params, _ = curve._split_at(new_t_max)
             if params is None:
-                raise Exception(f&#34;Cut 2: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
+                raise AlgorithmError(f&#34;Cut 2: {new_t_min} - {new_t_max} from {t_min} - {t_max}&#34;)
             knotvector, control_points, weights = params
             curve = SvNurbsCurve.build(implementation,
                         degree, knotvector,
@@ -2646,12 +2524,12 @@ such a way that each segment is nearly a straight line segment.</p></div>
     if delta is None and target is None:
         delta = 1
     if delta is not None and target is not None:
-        raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+        raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
     degree = self.get_degree()
     if delta is None:
         delta = target - degree
         if delta &lt; 0:
-            raise Exception(f&#34;Curve already has degree {degree}, which is greater than target {target}&#34;)
+            raise SvInvalidInputException(f&#34;Curve already has degree {degree}, which is greater than target {target}&#34;)
     if delta == 0:
         return self
 
@@ -2746,26 +2624,6 @@ such a way that each segment is nearly a straight line segment.</p></div>
 </details>
 <div class="desc"></div>
 </dd>
-<dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_points"><code class="name flex">
-<span>def <span class="ident">get_end_points</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_end_points(self):
-    if sv_knotvector.is_clamped(self.get_knotvector(), self.get_degree()):
-        cpts = self.get_control_points()
-        return cpts[0], cpts[-1]
-    else:
-        u_min, u_max = self.get_u_bounds()
-        begin = self.evaluate(u_min)
-        end = self.evaluate(u_max)
-        return begin, end</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
 <dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_tangent"><code class="name flex">
 <span>def <span class="ident">get_end_tangent</span></span>(<span>self)</span>
 </code></dt>
@@ -2819,7 +2677,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
     Returns:
         np.array of shape (X,)
     &#34;&#34;&#34;
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"><p>Get NURBS curve knotvector.</p>
 <h2 id="returns">Returns</h2>
@@ -2860,22 +2718,6 @@ such a way that each segment is nearly a straight line segment.</p></div>
 <pre><code class="python">def get_plane(self, tolerance=1e-6):
     cpts = self.get_control_points()
     return get_common_plane(cpts, tolerance)</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.get_polyline_vertices"><code class="name flex">
-<span>def <span class="ident">get_polyline_vertices</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_polyline_vertices(self):
-    segments = self.split_at_fracture_points()
-    points = [s.get_end_points()[0] for s in segments]
-    points.append(segments[-1].get_end_points()[1])
-    return np.array(points)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -2925,7 +2767,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
     Returns:
         np.array of shape (k,)
     &#34;&#34;&#34;
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"><p>Get NURBS curve weights.</p>
 <h2 id="returns">Returns</h2>
@@ -2957,7 +2799,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def insert_knot(self, u, count=1, if_possible=False):
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3020,7 +2862,7 @@ such a way that each segment is nearly a straight line segment.</p></div>
     direction = end - begin
     if np.linalg.norm(direction) &lt; tolerance:
         return True
-    line = LineEquation.from_direction_and_point(direction, begin).normalized()
+    line = LineEquation.from_direction_and_point(direction, begin, epsilon=tolerance).normalized()
     distances = line.distance_to_points(cpts)
     # Technically, this means that all control points lie
     # inside the cylinder, defined as &#34;distance from line &lt; tolerance&#34;;
@@ -3065,23 +2907,6 @@ inside the convex hull of it's control points.</p></div>
     if not sv_knotvector.is_clamped(self.get_knotvector(), self.get_degree()):
         return False
     return np.linalg.norm(cpts[-1] - cpts[0]) &lt; tolerance</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.is_polyline"><code class="name flex">
-<span>def <span class="ident">is_polyline</span></span>(<span>self, tolerance=1e-06)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def is_polyline(self, tolerance = 1e-6):
-    if self.get_degree() == 1:
-        return True
-
-    segments = self.split_at_fracture_points()
-    return all(s.is_line(tolerance) for s in segments)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3219,6 +3044,21 @@ lie inside the sphere, or may not touch it at all.</p></div>
 </details>
 <div class="desc"></div>
 </dd>
+<dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.mirror"><code class="name flex">
+<span>def <span class="ident">mirror</span></span>(<span>self, axis)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mirror(self, axis):
+    m = np.eye(3)
+    m[axis,axis] = -1
+    return self.transform(m, None)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 <dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.reduce_degree"><code class="name flex">
 <span>def <span class="ident">reduce_degree</span></span>(<span>self,<br>delta=None,<br>target=None,<br>tolerance=1e-06,<br>return_error=False,<br>if_possible=False,<br>logger=None)</span>
 </code></dt>
@@ -3232,12 +3072,12 @@ lie inside the sphere, or may not touch it at all.</p></div>
     if delta is None and target is None:
         delta = 1
     if delta is not None and target is not None:
-        raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+        raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
     orig_degree = self.get_degree()
     if delta is None:
         delta = orig_degree - target
         if delta &lt; 0:
-            raise Exception(f&#34;Curve already has degree {orig_degree}, which is greater than target {target}&#34;)
+            raise SvInvalidInputException(f&#34;Curve already has degree {orig_degree}, which is greater than target {target}&#34;)
     if delta == 0:
         return self
 
@@ -3320,7 +3160,7 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def remove_knot(self, u, count=1, target=None, tolerance=1e-6):
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3420,7 +3260,7 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <pre><code class="python">def split_at_fracture_points(self, order=1, direction_only = True, or_worse = True, angle_tolerance = 1e-6, amplitude_tolerance=1e-6, return_details = False):
 
     if order not in {1,2,3}:
-        raise Exception(f&#34;Unsupported discontinuity order: {order}&#34;)
+        raise ArgumentError(f&#34;Unsupported discontinuity order: {order}&#34;)
 
     def is_fracture(segment1, segment2):
         if order == 1:
@@ -3584,7 +3424,7 @@ lie inside the sphere, or may not touch it at all.</p></div>
 </summary>
 <pre><code class="python">def to_knotvector(self, curve2):
     if curve2.get_degree() != self.get_degree():
-        raise Exception(&#34;Degrees of the curves are not equal&#34;)
+        raise ArgumentError(&#34;Degrees of the curves are not equal&#34;)
     curve = self
     new_kv = curve2.get_knotvector()
     curve = curve.reparametrize(new_kv[0], new_kv[-1])
@@ -3656,21 +3496,45 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <h2 id="returns">Returns</h2>
 <p>new NURBS curve of the same implementation.</p></div>
 </dd>
+<dt id="sverchok.utils.curve.nurbs.SvNurbsCurve.translate"><code class="name flex">
+<span>def <span class="ident">translate</span></span>(<span>self, vector)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def translate(self, vector):
+    return self.transform(None, vector)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -3696,24 +3560,18 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <ul class="">
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.build" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.build">build</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.build_geomdl" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.build_geomdl">build_geomdl</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.derivatives_array" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.extrude_along_vector" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.extrude_along_vector">extrude_along_vector</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.from_any_nurbs" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.from_any_nurbs">from_any_nurbs</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.insert_knot" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.insert_knot">insert_knot</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.interpolate" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.interpolate">interpolate</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.is_rational" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.is_rational">is_rational</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.remove_knot" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.remove_knot">remove_knot</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.second_derivative" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.second_derivative">second_derivative</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.second_derivative_array" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.second_derivative_array">second_derivative_array</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.third_derivative" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.third_derivative">third_derivative</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvGeomdlCurve.third_derivative_array" href="#sverchok.utils.curve.nurbs.SvGeomdlCurve.third_derivative_array">third_derivative_array</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve">SvNativeNurbsCurve</a></code></h4>
 <ul class="">
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.build" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.build">build</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.derivatives_array" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.extrude_along_vector" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.extrude_along_vector">extrude_along_vector</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.fraction" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.fraction">fraction</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.fraction_single" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.fraction_single">fraction_single</a></code></li>
@@ -3721,9 +3579,6 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.interpolate" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.interpolate">interpolate</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.is_rational" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.is_rational">is_rational</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.remove_knot" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.remove_knot">remove_knot</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.second_derivative" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.second_derivative">second_derivative</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.second_derivative_array" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.second_derivative_array">second_derivative_array</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNativeNurbsCurve.third_derivative_array" href="#sverchok.utils.curve.nurbs.SvNativeNurbsCurve.third_derivative_array">third_derivative_array</a></code></li>
 </ul>
 </li>
 <li>
@@ -3749,14 +3604,12 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.extrude_to_point" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.extrude_to_point">extrude_to_point</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_bounding_box" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_bounding_box">get_bounding_box</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_point" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_point">get_end_point</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_points" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_points">get_end_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_tangent" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_end_tangent">get_end_tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_homogenous_control_points" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_homogenous_control_points">get_homogenous_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_knotvector" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_knotvector">get_knotvector</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_min_continuity" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_min_continuity">get_min_continuity</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_nurbs_implementation" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_nurbs_implementation">get_nurbs_implementation</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_plane" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_plane">get_plane</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_polyline_vertices" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_start_point" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_start_point">get_start_point</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_start_tangent" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_start_tangent">get_start_tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.get_weights" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.get_weights">get_weights</a></code></li>
@@ -3767,12 +3620,12 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_line" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_line">is_line</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_planar" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_planar">is_planar</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_point" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_point">is_point</a></code></li>
-<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_polyline" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_polyline">is_polyline</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_rational" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_rational">is_rational</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.is_strongly_outside_sphere" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.is_strongly_outside_sphere">is_strongly_outside_sphere</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.lerp_to" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.lerp_to">lerp_to</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.make_revolution_surface" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.make_revolution_surface">make_revolution_surface</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.make_ruled_surface" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.make_ruled_surface">make_ruled_surface</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.mirror" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.mirror">mirror</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.reduce_degree" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.reduce_degree">reduce_degree</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.remove_knot" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.remove_knot">remove_knot</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.reparametrize" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.reparametrize">reparametrize</a></code></li>
@@ -3786,6 +3639,7 @@ lie inside the sphere, or may not touch it at all.</p></div>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_nurbs" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_nurbs">to_nurbs</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.to_taylor_segments" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.to_taylor_segments">to_taylor_segments</a></code></li>
 <li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.transform" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.transform">transform</a></code></li>
+<li><code><a title="sverchok.utils.curve.nurbs.SvNurbsCurve.translate" href="#sverchok.utils.curve.nurbs.SvNurbsCurve.translate">translate</a></code></li>
 </ul>
 </li>
 </ul>

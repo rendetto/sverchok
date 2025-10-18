@@ -45,14 +45,14 @@ el.replaceWith(d);
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="sverchok.utils.curve.algorithms.concatenate_curves"><code class="name flex">
-<span>def <span class="ident">concatenate_curves</span></span>(<span>curves, scale_to_unit=False, allow_generic=True)</span>
+<span>def <span class="ident">concatenate_curves</span></span>(<span>curves, scale_to_unit=False, allow_generic=True, allow_split=False, tolerance=1e-06)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def concatenate_curves(curves, scale_to_unit=False, allow_generic=True):
+<pre><code class="python">def concatenate_curves(curves, scale_to_unit=False, allow_generic=True, allow_split=False, tolerance=1e-6):
     &#34;&#34;&#34;
     Concatenate a list of curves. When possible, use `concatenate` method of
     curves to make a &#34;native&#34; concatenation - for example, make one Nurbs out of
@@ -69,7 +69,7 @@ el.replaceWith(d);
         an instance of SvCurve.
     &#34;&#34;&#34;
     if not curves:
-        raise Exception(&#34;List of curves must be not empty&#34;)
+        raise ArgumentError(&#34;List of curves must be not empty&#34;)
     if scale_to_unit:
         result = [reparametrize_curve(curves[0])]
     else:
@@ -83,15 +83,16 @@ el.replaceWith(d);
             try:
                 if scale_to_unit:
                     # P.1: try to join with rescaled curve
-                    new_curve = result[-1].concatenate(reparametrize_curve(curve))
+                    new_curve = result[-1].concatenate(reparametrize_curve(curve), tolerance=tolerance)
                 else:
-                    new_curve = result[-1].concatenate(curve)
+                    new_curve = result[-1].concatenate(curve, tolerance=tolerance)
                 some_native = True
                 ok = True
             except UnsupportedCurveTypeException as e:
-                exceptions.append(e)
+                if not allow_split or not isinstance(e, CurveEndpointsNotMatchingException):
+                    exceptions.append(e)
                 # &#34;concatenate&#34; method can&#39;t work with this type of curve
-                sv_logger.info(&#34;Can&#39;t natively join curve #%s (%s), will use generic method: %s&#34;, idx+1, curve, e)
+                sv_logger.info(&#34;Can&#39;t natively join curve #%s (%s) to %s, will use generic method: %s&#34;, idx+1, curve, result[-1], e)
                 # P.2: if some curves were already joined natively,
                 # then we have to rescale each of other curves separately
                 if some_native and scale_to_unit:
@@ -113,9 +114,11 @@ el.replaceWith(d);
             # if no successful joins were made, then we can rescale all curves
             # at once.
             return SvConcatCurve(result, scale_to_unit and not some_native)
+        elif allow_split:
+            return result
         else:
             err_msg = &#34;\n&#34;.join([str(e) for e in exceptions])
-            raise Exception(f&#34;Could not join some curves natively. Result is: {result}.\nErrors were:\n{err_msg}&#34;)</code></pre>
+            raise SvInvalidInputException(f&#34;Could not join some curves natively. Result is: {result}.\nErrors were:\n{err_msg}&#34;)</code></pre>
 </details>
 <div class="desc"><p>Concatenate a list of curves. When possible, use <code>concatenate</code> method of
 curves to make a "native" concatenation - for example, make one Nurbs out of
@@ -404,15 +407,17 @@ some of the curves.</dd>
     &#34;&#34;&#34;
     if hasattr(curve, &#39;split_at&#39;):
         result = []
+        tail = None
         for split in splits:
             head, tail = curve.split_at(split)
             if rescale:
                 head = reparametrize_curve(head, 0, 1)
             result.append(head)
             curve = tail
-        if rescale:
-            tail = reparametrize_curve(tail, 0, 1)
-        result.append(tail)
+        if tail is not None:
+            if rescale:
+                tail = reparametrize_curve(tail, 0, 1)
+            result.append(tail)
         return result
     else:
         t_min, t_max = curve.get_u_bounds()
@@ -586,7 +591,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
             matrices = self.normal_tracker.evaluate_array(ts)
             return matrices
         else:
-            raise Exception(&#34;Unsupported algorithm&#34;)</code></pre>
+            raise ArgumentError(&#34;Unsupported algorithm&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 <h3>Methods</h3>
@@ -618,7 +623,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
         matrices = self.normal_tracker.evaluate_array(ts)
         return matrices
     else:
-        raise Exception(&#34;Unsupported algorithm&#34;)</code></pre>
+        raise ArgumentError(&#34;Unsupported algorithm&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -676,7 +681,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
         elif algorithm == DIFF:
             rot = autorotate_diff(tangent, ax1)
         else:
-            raise Exception(&#34;Unsupported algorithm&#34;)
+            raise ArgumentError(&#34;Unsupported algorithm&#34;)
         rot = np.array(rot.to_3x3())
 
         return np.matmul(rot, scale_matrix)</code></pre>
@@ -761,15 +766,26 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -819,15 +835,26 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -876,15 +903,26 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -929,7 +967,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
             matrices = np.vectorize(lambda t : self.get_matrix(t), signature=&#39;(3)-&gt;(3,3)&#39;)(tangents)
             return matrices
         else:
-            raise Exception(&#34;Unsupported algorithm&#34;)</code></pre>
+            raise ArgumentError(&#34;Unsupported algorithm&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 <h3>Methods</h3>
@@ -957,7 +995,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
         matrices = np.vectorize(lambda t : self.get_matrix(t), signature=&#39;(3)-&gt;(3,3)&#39;)(tangents)
         return matrices
     else:
-        raise Exception(&#34;Unsupported algorithm&#34;)</code></pre>
+        raise ArgumentError(&#34;Unsupported algorithm&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -1002,7 +1040,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 
     def get_total_length(self):
         if self._reverse_spline is None:
-            raise Exception(&#34;You have to call solver.prepare() first&#34;)
+            raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
         return self._length_params[-1]
 
     def _calc_tknots_fixed(self, resolution):
@@ -1048,24 +1086,24 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
         elif mode == &#39;SPL&#39;:
             spline = CubicSpline(control_points, tknots = values, is_cyclic = False)
         else:
-            raise Exception(&#34;Unsupported mode; supported are LIN and SPL.&#34;)
+            raise ArgumentError(&#34;Unsupported mode; supported are LIN and SPL.&#34;)
         return spline
 
     def calc_length(self, t_min, t_max):
         if self._prime_spline is None:
-            raise Exception(&#34;You have to call solver.prepare() first&#34;)
+            raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
         lengths = self._prime_spline.eval(np.array([t_min, t_max]))
         return lengths[1][1] - lengths[0][1]
 
     def calc_length_params(self, ts):
         if self._prime_spline is None:
-            raise Exception(&#34;You have to call solver.prepare() first&#34;)
+            raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
         spline_verts = self._prime_spline.eval(ts)
         return spline_verts[:,1]
 
     def solve(self, input_lengths):
         if self._reverse_spline is None:
-            raise Exception(&#34;You have to call solver.prepare() first&#34;)
+            raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
         spline_verts = self._reverse_spline.eval(input_lengths)
         return spline_verts[:,1]</code></pre>
 </details>
@@ -1086,7 +1124,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 </summary>
 <pre><code class="python">def calc_length(self, t_min, t_max):
     if self._prime_spline is None:
-        raise Exception(&#34;You have to call solver.prepare() first&#34;)
+        raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
     lengths = self._prime_spline.eval(np.array([t_min, t_max]))
     return lengths[1][1] - lengths[0][1]</code></pre>
 </details>
@@ -1102,7 +1140,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 </summary>
 <pre><code class="python">def calc_length_params(self, ts):
     if self._prime_spline is None:
-        raise Exception(&#34;You have to call solver.prepare() first&#34;)
+        raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
     spline_verts = self._prime_spline.eval(ts)
     return spline_verts[:,1]</code></pre>
 </details>
@@ -1134,7 +1172,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 </summary>
 <pre><code class="python">def get_total_length(self):
     if self._reverse_spline is None:
-        raise Exception(&#34;You have to call solver.prepare() first&#34;)
+        raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
     return self._length_params[-1]</code></pre>
 </details>
 <div class="desc"></div>
@@ -1169,7 +1207,7 @@ Can raise UnsupportedCurveTypeException if some degrees can not be elevated.</p>
 </summary>
 <pre><code class="python">def solve(self, input_lengths):
     if self._reverse_spline is None:
-        raise Exception(&#34;You have to call solver.prepare() first&#34;)
+        raise InvalidStateError(&#34;You have to call solver.prepare() first&#34;)
     spline_verts = self._reverse_spline.eval(input_lengths)
     return spline_verts[:,1]</code></pre>
 </details>
@@ -1253,15 +1291,26 @@ def build(curve1, curve2, coefficient):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -1435,15 +1484,26 @@ def build(curve1, curve2, coefficient):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -1487,7 +1547,7 @@ def build(curve1, curve2, coefficient):
             us = xs
             vs = ys
         else:
-            raise Exception(&#34;Unsupported orientation axis&#34;)
+            raise ArgumentError(&#34;Unsupported orientation axis&#34;)
         return self.surface.evaluate_array(us, vs)</code></pre>
 </details>
 <div class="desc"></div>
@@ -1500,15 +1560,26 @@ def build(curve1, curve2, coefficient):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -1978,15 +2049,26 @@ def uv_tangents(self):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -2077,15 +2159,26 @@ def take(surface, fixed_axis, value, flip=False):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -2135,15 +2228,26 @@ def take(surface, fixed_axis, value, flip=False):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>
@@ -2310,7 +2414,7 @@ def take(surface, fixed_axis, value, flip=False):
                     algorithm=FRENET, resolution=50):
         self.curve = curve
         if algorithm == NORMAL_DIR and (offset_amount is None and offset_curve is None):
-            raise Exception(&#34;offset_amount or offset_curve is mandatory if algorithm is NORMAL_DIR&#34;)
+            raise ArgumentError(&#34;offset_amount or offset_curve is mandatory if algorithm is NORMAL_DIR&#34;)
         self.offset_amount = offset_amount
         self.offset_vector = offset_vector
         self.offset_curve = offset_curve
@@ -2343,7 +2447,7 @@ def take(surface, fixed_axis, value, flip=False):
             matrices = np.vectorize(lambda t : self.get_matrix(t), signature=&#39;(3)-&gt;(3,3)&#39;)(tangents)
             return matrices
         else:
-            raise Exception(&#34;Unsupported algorithm&#34;)
+            raise ArgumentError(&#34;Unsupported algorithm&#34;)
 
     def get_offset(self, ts):
         u_min, u_max = self.curve.get_u_bounds()
@@ -2421,7 +2525,7 @@ def take(surface, fixed_axis, value, flip=False):
         matrices = np.vectorize(lambda t : self.get_matrix(t), signature=&#39;(3)-&gt;(3,3)&#39;)(tangents)
         return matrices
     else:
-        raise Exception(&#34;Unsupported algorithm&#34;)</code></pre>
+        raise ArgumentError(&#34;Unsupported algorithm&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -2476,15 +2580,26 @@ def take(surface, fixed_axis, value, flip=False):
 <li><code><b><a title="sverchok.utils.curve.core.SvCurve" href="core.html#sverchok.utils.curve.core.SvCurve">SvCurve</a></b></code>:
 <ul class="hlist">
 <li><code><a title="sverchok.utils.curve.core.SvCurve.calc_length" href="core.html#sverchok.utils.curve.core.SvCurve.calc_length">calc_length</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.derivatives_array" href="core.html#sverchok.utils.curve.core.SvCurve.derivatives_array">derivatives_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate">evaluate</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.evaluate_array" href="core.html#sverchok.utils.curve.core.SvCurve.evaluate_array">evaluate_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_array">frame_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.frame_by_plane_array" href="core.html#sverchok.utils.curve.core.SvCurve.frame_by_plane_array">frame_by_plane_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_control_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_degree" href="core.html#sverchok.utils.curve.core.SvCurve.get_degree">get_degree</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_end_points" href="core.html#sverchok.utils.curve.core.SvCurve.get_end_points">get_end_points</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_polyline_vertices" href="core.html#sverchok.utils.curve.core.SvCurve.get_polyline_vertices">get_polyline_vertices</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_tangent_delta" href="core.html#sverchok.utils.curve.core.SvCurve.get_tangent_delta">get_tangent_delta</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.get_tilt_pairs" href="core.html#sverchok.utils.curve.core.SvCurve.get_tilt_pairs">get_tilt_pairs</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.get_u_bounds" href="core.html#sverchok.utils.curve.core.SvCurve.get_u_bounds">get_u_bounds</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_closed" href="core.html#sverchok.utils.curve.core.SvCurve.is_closed">is_closed</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.is_polyline" href="core.html#sverchok.utils.curve.core.SvCurve.is_polyline">is_polyline</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative">second_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.second_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.second_derivative_array">second_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent" href="core.html#sverchok.utils.curve.core.SvCurve.tangent">tangent</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.tangent_array" href="core.html#sverchok.utils.curve.core.SvCurve.tangent_array">tangent_array</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative">third_derivative</a></code></li>
+<li><code><a title="sverchok.utils.curve.core.SvCurve.third_derivative_array" href="core.html#sverchok.utils.curve.core.SvCurve.third_derivative_array">third_derivative_array</a></code></li>
 <li><code><a title="sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array" href="core.html#sverchok.utils.curve.core.SvCurve.zero_torsion_frame_array">zero_torsion_frame_array</a></code></li>
 </ul>
 </li>

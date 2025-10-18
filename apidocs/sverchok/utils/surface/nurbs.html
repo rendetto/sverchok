@@ -139,7 +139,7 @@ Returns: list of SvNurbsCurve of length N.</p></div>
     m = len(points[0])
 
     if (uknots is None) != (vknots is None):
-        raise Exception(&#34;uknots and vknots must be either both provided or both omitted&#34;)
+        raise ArgumentError(&#34;uknots and vknots must be either both provided or both omitted&#34;)
 
     if logger is None:
         logger = get_logger()
@@ -355,9 +355,9 @@ Returns: list of SvNurbsCurve of length N.</p></div>
     have_ts1 = ts1 is not None and len(ts1) &gt; 0
     have_ts2 = ts2 is not None and len(ts2) &gt; 0
     if have_ts1 and n_profiles != len(ts1):
-        raise Exception(f&#34;Number of profiles ({n_profiles}) is not equal to number of T values ({len(ts1)})&#34;)
+        raise ArgumentError(f&#34;Number of profiles ({n_profiles}) is not equal to number of T values ({len(ts1)})&#34;)
     if have_ts2 and n_profiles != len(ts2):
-        raise Exception(f&#34;Number of profiles ({n_profiles}) is not equal to number of T values ({len(ts2)})&#34;)
+        raise ArgumentError(f&#34;Number of profiles ({n_profiles}) is not equal to number of T values ({len(ts2)})&#34;)
 
     if degree_v is None:
         degree_v = path1.get_degree()
@@ -556,7 +556,7 @@ Otherwise, try to figure out their rotation automatically.
     n_profiles = len(profiles)
     have_ts = ts is not None and len(ts) &gt; 0
     if have_ts and n_profiles != len(ts):
-        raise Exception(f&#34;Number of profiles ({n_profiles}) is not equal to number of T values ({len(ts)})&#34;)
+        raise ArgumentError(f&#34;Number of profiles ({n_profiles}) is not equal to number of T values ({len(ts)})&#34;)
 
     t_min, t_max = path.get_u_bounds()
     if not have_ts:
@@ -643,9 +643,9 @@ HOUSEHOLDER, TRACK, DIFF, TRACK_NORMAL, NORMAL_DIR.
         * generated NURBS surface.
     &#34;&#34;&#34;
     if len(profiles) != len(ts):
-        raise Exception(f&#34;Number of profiles ({len(profiles)}) is not equal to number of T values ({len(ts)})&#34;)
+        raise ArgumentError(f&#34;Number of profiles ({len(profiles)}) is not equal to number of T values ({len(ts)})&#34;)
     if len(ts) &lt; 2:
-        raise Exception(&#34;At least 2 profiles are required&#34;)
+        raise ArgumentError(&#34;At least 2 profiles are required&#34;)
 
     path_points = path.evaluate_array(ts)
     frames = frame_calculator(ts)
@@ -703,7 +703,7 @@ returns np.array((n, 3, 3)) of curve frames.
         * generated NURBS surface.
     &#34;&#34;&#34;
     if knots_u not in {&#39;UNIFY&#39;, &#39;AVERAGE&#39;}:
-        raise Exception(f&#34;Unsupported knots_u option: {knots_u}&#34;)
+        raise ArgumentError(f&#34;Unsupported knots_u option: {knots_u}&#34;)
     if logger is None:
         logger = get_logger()
     curves = unify_curves_degree(curves)
@@ -713,14 +713,14 @@ returns np.array((n, 3, 3)) of curve frames.
         kvs = [len(curve.get_control_points()) for curve in curves]
         max_kv, min_kv = max(kvs), min(kvs)
         if max_kv != min_kv:
-            raise Exception(f&#34;U knotvector averaging is not applicable: Curves have different number of control points: {kvs}&#34;)
+            raise SvUnsupportedOptionException(f&#34;U knotvector averaging is not applicable: Curves have different number of control points: {kvs}&#34;)
 
     degree_u = curves[0].get_degree()
     if degree_v is None:
         degree_v = degree_u
 
     if degree_v &gt; len(curves):
-        raise Exception(f&#34;V degree ({degree_v}) must be not greater than number of curves ({len(curves)}) minus 1&#34;)
+        raise SvUnsupportedOptionException(f&#34;V degree ({degree_v}) must be not greater than number of curves ({len(curves)}) minus 1&#34;)
 
     src_points = [curve.get_homogenous_control_points() for curve in curves]
     #print(&#34;P&#34;, [p.shape for p in src_points])
@@ -1502,7 +1502,7 @@ def v_size(self):
             self.weights = np.array(weights)
             w_ku, w_kv = self.weights.shape
             if c_ku != w_ku or c_kv != w_kv:
-                raise Exception(f&#34;Shape of control_points ({c_ku}, {c_kv}) does not match to shape of weights ({w_ku}, {w_kv})&#34;)
+                raise SvInvalidInputException(f&#34;Shape of control_points ({c_ku}, {c_kv}) does not match to shape of weights ({w_ku}, {w_kv})&#34;)
         self.basis_u = SvNurbsBasisFunctions(knotvector_u)
         self.basis_v = SvNurbsBasisFunctions(knotvector_v)
         self.u_bounds = (self.knotvector_u.min(), self.knotvector_u.max())
@@ -1603,7 +1603,7 @@ def v_size(self):
                     self.knotvector_u, fixed_u_knotvector,
                     new_points, new_weights)
         else:
-            raise Exception(&#34;Unsupported direction&#34;)
+            raise ArgumentError(&#34;Unsupported direction&#34;)
 
     def remove_knot(self, direction, parameter, count=1, if_possible=False, tolerance=1e-6):
         def get_common_count(curves):
@@ -1687,7 +1687,7 @@ def v_size(self):
                     self.knotvector_u, fixed_u_knotvector,
                     new_points, new_weights)
         else:
-            raise Exception(&#34;Unsupported direction&#34;)
+            raise ArgumentError(&#34;Unsupported direction&#34;)
 
     def get_degree_u(self):
         return self.degree_u
@@ -2157,7 +2157,7 @@ def v_size(self):
                 self.knotvector_u, fixed_u_knotvector,
                 new_points, new_weights)
     else:
-        raise Exception(&#34;Unsupported direction&#34;)</code></pre>
+        raise ArgumentError(&#34;Unsupported direction&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -2331,7 +2331,7 @@ def v_size(self):
                 self.knotvector_u, fixed_u_knotvector,
                 new_points, new_weights)
     else:
-        raise Exception(&#34;Unsupported direction&#34;)</code></pre>
+        raise ArgumentError(&#34;Unsupported direction&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -2391,7 +2391,7 @@ def v_size(self):
 
     @classmethod
     def get_nurbs_implementation(cls):
-        raise Exception(&#34;NURBS implementation is not defined&#34;)
+        raise NotImplementedError(&#34;NURBS implementation is not defined&#34;)
 
     def copy(self, implementation = None, degree_u=None, degree_v = None, knotvector_u = None, knotvector_v = None, control_points = None, weights = None):
         if implementation is None:
@@ -2415,43 +2415,43 @@ def v_size(self):
                 control_points, weights)
 
     def insert_knot(self, direction, parameter, count=1, if_possible=False):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def remove_knot(self, direction, parameter, count=1, tolerance=None, if_possible=False):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_degree_u(self):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_degree_v(self):
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_knotvector_u(self):
         &#34;&#34;&#34;
         returns: np.array of shape (X,)
         &#34;&#34;&#34;
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_knotvector_v(self):
         &#34;&#34;&#34;
         returns: np.array of shape (X,)
         &#34;&#34;&#34;
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_control_points(self):
         &#34;&#34;&#34;
         returns: np.array of shape (n_u, n_v, 3)
         &#34;&#34;&#34;
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def get_weights(self):
         &#34;&#34;&#34;
         returns: np.array of shape (n_u, n_v)
         &#34;&#34;&#34;
-        raise Exception(&#34;Not implemented!&#34;)
+        raise NotImplementedError(&#34;Not implemented!&#34;)
 
     def iso_curve(self, fixed_direction, param):
-        raise Exception(&#34;Not implemented&#34;)
+        raise NotImplementedError(&#34;Not implemented&#34;)
     
     def is_rational(self, tolerance=1e-4):
         weights = self.get_weights()
@@ -2533,7 +2533,7 @@ def v_size(self):
         if delta is None and target is None:
             delta = 1
         if delta is not None and target is not None:
-            raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+            raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
         if direction == SvNurbsSurface.U:
             degree = self.get_degree_u()
         else:
@@ -2541,7 +2541,7 @@ def v_size(self):
         if delta is None:
             delta = target - degree
             if delta &lt; 0:
-                raise Exception(f&#34;Surface already has degree {degree}, which is greater than target {target}&#34;)
+                raise SvInvalidInputException(f&#34;Surface already has degree {degree}, which is greater than target {target}&#34;)
         if delta == 0:
             return self
 
@@ -2603,7 +2603,7 @@ def v_size(self):
         if delta is None and target is None:
             delta = 1
         if delta is not None and target is not None:
-            raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+            raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
         if direction == SvNurbsSurface.U:
             degree = self.get_degree_u()
         else:
@@ -2611,7 +2611,7 @@ def v_size(self):
         if delta is None:
             delta = degree - target
             if delta &lt; 0:
-                raise Exception(f&#34;Surface already has degree {degree}, which is less than target {target}&#34;)
+                raise SvInvalidInputException(f&#34;Surface already has degree {degree}, which is less than target {target}&#34;)
         if delta == 0:
             return self
 
@@ -2751,7 +2751,7 @@ def v_size(self):
         elif direction == SvNurbsSurface.V:
             return self.cut_v(parameter)
         else:
-            raise Exception(&#34;Unsupported direction&#34;)
+            raise SvUnsupportedOptionException(&#34;Unsupported direction&#34;)
 
     def cut_slice(self, direction, p_min, p_max):
         _, rest = self.split_at(direction, p_min)
@@ -2759,6 +2759,45 @@ def v_size(self):
             return None
         result, _ = rest.split_at(direction, p_max)
         return result
+
+    def get_discontinuities_u(self, order, include_endpoints=False):
+        p = self.get_degree_u()
+        knotvector = self.get_knotvector_u()
+        ms = sv_knotvector.to_multiplicity(knotvector)
+        result = [t for t, s in ms if s == p - order + 1]
+        if include_endpoints:
+            result = [knotvector[0]] + result + [knotvector[-1]]
+        return result
+
+    def get_discontinuities_v(self, order, include_endpoints=False):
+        p = self.get_degree_v()
+        knotvector = self.get_knotvector_v()
+        ms = sv_knotvector.to_multiplicity(knotvector)
+        result = [t for t, s in ms if s == p - order + 1]
+        if include_endpoints:
+            result = [knotvector[0]] + result + [knotvector[-1]]
+        return result
+
+    def get_discontinuities(self, direction, order, include_endpoints=False):
+        if direction == SvNurbsSurface.U:
+            return self.get_discontinuities_u(order, include_endpoints)
+        else:
+            return self.get_discontinuities_v(order, include_endpoints)
+
+    def cut_slices_by_discontinuity(self, direction, order):
+        ts = self.get_discontinuities(direction, order, include_endpoints=True)
+        if len(ts) &lt;= 2:
+            return [self]
+        result = [self.cut_slice(direction, t1, t2) for t1, t2 in zip(ts, ts[1:])]
+        #print(f&#34;Discontinuities in {direction}: {ts} =&gt; {len(result)} slices&#34;)
+        return result
+
+    def cut_slices_by_discontinuity_uv(self, order, join=True):
+        slices_u = self.cut_slices_by_discontinuity(SvNurbsSurface.U, order)
+        slices = [sl.cut_slices_by_discontinuity(SvNurbsSurface.V, order) for sl in slices_u]
+        if join:
+            slices = sum(slices, [])
+        return slices
 
     def _concat_u(self, surface2, tolerance=1e-6):
         surface1 = self
@@ -3014,6 +3053,41 @@ def v_size(self):
 </details>
 <div class="desc"></div>
 </dd>
+<dt id="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slices_by_discontinuity"><code class="name flex">
+<span>def <span class="ident">cut_slices_by_discontinuity</span></span>(<span>self, direction, order)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cut_slices_by_discontinuity(self, direction, order):
+    ts = self.get_discontinuities(direction, order, include_endpoints=True)
+    if len(ts) &lt;= 2:
+        return [self]
+    result = [self.cut_slice(direction, t1, t2) for t1, t2 in zip(ts, ts[1:])]
+    #print(f&#34;Discontinuities in {direction}: {ts} =&gt; {len(result)} slices&#34;)
+    return result</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slices_by_discontinuity_uv"><code class="name flex">
+<span>def <span class="ident">cut_slices_by_discontinuity_uv</span></span>(<span>self, order, join=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cut_slices_by_discontinuity_uv(self, order, join=True):
+    slices_u = self.cut_slices_by_discontinuity(SvNurbsSurface.U, order)
+    slices = [sl.cut_slices_by_discontinuity(SvNurbsSurface.V, order) for sl in slices_u]
+    if join:
+        slices = sum(slices, [])
+    return slices</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 <dt id="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_u"><code class="name flex">
 <span>def <span class="ident">cut_u</span></span>(<span>self, u)</span>
 </code></dt>
@@ -3103,7 +3177,7 @@ def v_size(self):
     if delta is None and target is None:
         delta = 1
     if delta is not None and target is not None:
-        raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+        raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
     if direction == SvNurbsSurface.U:
         degree = self.get_degree_u()
     else:
@@ -3111,7 +3185,7 @@ def v_size(self):
     if delta is None:
         delta = target - degree
         if delta &lt; 0:
-            raise Exception(f&#34;Surface already has degree {degree}, which is greater than target {target}&#34;)
+            raise SvInvalidInputException(f&#34;Surface already has degree {degree}, which is greater than target {target}&#34;)
     if delta == 0:
         return self
 
@@ -3183,7 +3257,7 @@ def v_size(self):
     &#34;&#34;&#34;
     returns: np.array of shape (n_u, n_v, 3)
     &#34;&#34;&#34;
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"><p>returns: np.array of shape (n_u, n_v, 3)</p></div>
 </dd>
@@ -3196,7 +3270,7 @@ def v_size(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_degree_u(self):
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3209,7 +3283,61 @@ def v_size(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_degree_v(self):
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities"><code class="name flex">
+<span>def <span class="ident">get_discontinuities</span></span>(<span>self, direction, order, include_endpoints=False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_discontinuities(self, direction, order, include_endpoints=False):
+    if direction == SvNurbsSurface.U:
+        return self.get_discontinuities_u(order, include_endpoints)
+    else:
+        return self.get_discontinuities_v(order, include_endpoints)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities_u"><code class="name flex">
+<span>def <span class="ident">get_discontinuities_u</span></span>(<span>self, order, include_endpoints=False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_discontinuities_u(self, order, include_endpoints=False):
+    p = self.get_degree_u()
+    knotvector = self.get_knotvector_u()
+    ms = sv_knotvector.to_multiplicity(knotvector)
+    result = [t for t, s in ms if s == p - order + 1]
+    if include_endpoints:
+        result = [knotvector[0]] + result + [knotvector[-1]]
+    return result</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities_v"><code class="name flex">
+<span>def <span class="ident">get_discontinuities_v</span></span>(<span>self, order, include_endpoints=False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_discontinuities_v(self, order, include_endpoints=False):
+    p = self.get_degree_v()
+    knotvector = self.get_knotvector_v()
+    ms = sv_knotvector.to_multiplicity(knotvector)
+    result = [t for t, s in ms if s == p - order + 1]
+    if include_endpoints:
+        result = [knotvector[0]] + result + [knotvector[-1]]
+    return result</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3244,7 +3372,7 @@ def v_size(self):
     &#34;&#34;&#34;
     returns: np.array of shape (X,)
     &#34;&#34;&#34;
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"><p>returns: np.array of shape (X,)</p></div>
 </dd>
@@ -3260,7 +3388,7 @@ def v_size(self):
     &#34;&#34;&#34;
     returns: np.array of shape (X,)
     &#34;&#34;&#34;
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"><p>returns: np.array of shape (X,)</p></div>
 </dd>
@@ -3348,7 +3476,7 @@ def v_size(self):
     &#34;&#34;&#34;
     returns: np.array of shape (n_u, n_v)
     &#34;&#34;&#34;
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"><p>returns: np.array of shape (n_u, n_v)</p></div>
 </dd>
@@ -3361,7 +3489,7 @@ def v_size(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def insert_knot(self, direction, parameter, count=1, if_possible=False):
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3389,7 +3517,7 @@ def v_size(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def iso_curve(self, fixed_direction, param):
-    raise Exception(&#34;Not implemented&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3405,7 +3533,7 @@ def v_size(self):
     if delta is None and target is None:
         delta = 1
     if delta is not None and target is not None:
-        raise Exception(&#34;Of delta and target, only one parameter can be specified&#34;)
+        raise ArgumentError(&#34;Of delta and target, only one parameter can be specified&#34;)
     if direction == SvNurbsSurface.U:
         degree = self.get_degree_u()
     else:
@@ -3413,7 +3541,7 @@ def v_size(self):
     if delta is None:
         delta = degree - target
         if delta &lt; 0:
-            raise Exception(f&#34;Surface already has degree {degree}, which is less than target {target}&#34;)
+            raise SvInvalidInputException(f&#34;Surface already has degree {degree}, which is less than target {target}&#34;)
     if delta == 0:
         return self
 
@@ -3501,7 +3629,7 @@ def v_size(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def remove_knot(self, direction, parameter, count=1, tolerance=None, if_possible=False):
-    raise Exception(&#34;Not implemented!&#34;)</code></pre>
+    raise NotImplementedError(&#34;Not implemented!&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3519,7 +3647,7 @@ def v_size(self):
     elif direction == SvNurbsSurface.V:
         return self.cut_v(parameter)
     else:
-        raise Exception(&#34;Unsupported direction&#34;)</code></pre>
+        raise SvUnsupportedOptionException(&#34;Unsupported direction&#34;)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -3646,6 +3774,8 @@ def v_size(self):
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.concatenate" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.concatenate">concatenate</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.copy" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.copy">copy</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slice" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slice">cut_slice</a></code></li>
+<li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slices_by_discontinuity" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slices_by_discontinuity">cut_slices_by_discontinuity</a></code></li>
+<li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slices_by_discontinuity_uv" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.cut_slices_by_discontinuity_uv">cut_slices_by_discontinuity_uv</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_u" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.cut_u">cut_u</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.cut_v" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.cut_v">cut_v</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.elevate_degree" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.elevate_degree">elevate_degree</a></code></li>
@@ -3653,6 +3783,9 @@ def v_size(self):
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_control_points" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_control_points">get_control_points</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_degree_u" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_degree_u">get_degree_u</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_degree_v" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_degree_v">get_degree_v</a></code></li>
+<li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities">get_discontinuities</a></code></li>
+<li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities_u" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities_u">get_discontinuities_u</a></code></li>
+<li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities_v" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_discontinuities_v">get_discontinuities_v</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_homogenous_control_points" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_homogenous_control_points">get_homogenous_control_points</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_knotvector_u" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_knotvector_u">get_knotvector_u</a></code></li>
 <li><code><a title="sverchok.utils.surface.nurbs.SvNurbsSurface.get_knotvector_v" href="#sverchok.utils.surface.nurbs.SvNurbsSurface.get_knotvector_v">get_knotvector_v</a></code></li>
