@@ -1676,12 +1676,14 @@ Structure of the class can be just a value or usual dictionary (in case of a poi
         _set_optional(self._struct[&#34;attributes&#34;], &#39;hide&#39;, socket.hide)
         _set_optional(self._struct, &#34;attributes&#34;, self._struct[&#34;attributes&#34;])
 
+
         for prop_name in socket.keys():
             prop = BPYProperty(socket, prop_name)
             if prop.is_valid and prop.is_to_save:
                 raw_struct = factories.prop(prop.name, self.logger).export(prop, factories, dependencies)
                 if raw_struct is not None:
                     self._struct[&#34;properties&#34;][prop.name] = raw_struct
+        
         _set_optional(self._struct, &#34;properties&#34;, self._struct[&#34;properties&#34;])
 
         return self._struct
@@ -1787,12 +1789,14 @@ Structure of the class can be just a value or usual dictionary (in case of a poi
     _set_optional(self._struct[&#34;attributes&#34;], &#39;hide&#39;, socket.hide)
     _set_optional(self._struct, &#34;attributes&#34;, self._struct[&#34;attributes&#34;])
 
+
     for prop_name in socket.keys():
         prop = BPYProperty(socket, prop_name)
         if prop.is_valid and prop.is_to_save:
             raw_struct = factories.prop(prop.name, self.logger).export(prop, factories, dependencies)
             if raw_struct is not None:
                 self._struct[&#34;properties&#34;][prop.name] = raw_struct
+    
     _set_optional(self._struct, &#34;properties&#34;, self._struct[&#34;properties&#34;])
 
     return self._struct</code></pre>
