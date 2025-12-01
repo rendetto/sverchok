@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>NURBS Loft &#8212; Sverchok 1, 2, 0 documentation</title>
+    <title>NURBS Loft &#8212; Sverchok 1, 4, 0 documentation</title>
   
   
   
@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=80221c76"></script>
+    <script src="../../_static/documentation_options.js?v=c14129a0"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -138,8 +138,8 @@
       
     
     
-    <img src="../../_static/title_big_b.svg" class="logo__image only-light" alt="Sverchok 1, 2, 0 documentation - Home"/>
-    <script>document.write(`<img src="../../_static/title_big_b.svg" class="logo__image only-dark" alt="Sverchok 1, 2, 0 documentation - Home"/>`);</script>
+    <img src="../../_static/title_big_b.svg" class="logo__image only-light" alt="Sverchok 1, 4, 0 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/title_big_b.svg" class="logo__image only-dark" alt="Sverchok 1, 4, 0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -247,6 +247,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../pulga_physics/pulga_physics_index.html">Pulga Physics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../exchange/exchange_index.html">Exchange</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../svg/svg_index.html">SVG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dxf/dxf_index.html">DXF</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorials.html">Tutorials</a></li>
@@ -504,6 +505,14 @@ faster, and any following nodes working with the generated surface will work
 faster; but <strong>Average</strong> mode is less universal, and in many cases it gives
 less precise interpolations. The default value is <strong>Unify</strong>.</p>
 </li>
+<li><p><strong>Knotvector accuracy</strong>. This parameter is available in the N panel only.
+Accuracy (number of exact digits after decimal points) to be used for
+knotvector unification algorithm. The default value is 6. Usually you do not
+have to modify this parameter; but, if your curves have a lot of control
+points (like, hundreds of them), or if knot values in curves knotvectors are
+very near one another, you may wish to reduce accuracy in order to reduce the
+number of control points in the resulting surface (the result will be less
+precise, but will work faster).</p></li>
 <li><p><strong>Metric</strong>. This parameter is available in the N panel only. Distance type
 used for interpolation along V direction. The available values are:</p>
 <blockquote>

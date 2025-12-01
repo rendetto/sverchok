@@ -1,8 +1,8 @@
 Get Objects Data
 ================
 
-.. image:: https://github.com/nortikin/sverchok/assets/14288520/d2b29188-e471-4821-80fa-ea0da9e8403e
-  :target: https://github.com/nortikin/sverchok/assets/14288520/d2b29188-e471-4821-80fa-ea0da9e8403e
+.. image:: https://github.com/user-attachments/assets/d291d5cf-c65d-467b-938a-5f32ac4d2b36
+  :target: https://github.com/user-attachments/assets/d291d5cf-c65d-467b-938a-5f32ac4d2b36
 
 Functionality
 -------------
@@ -18,6 +18,53 @@ A few points worth stating explicitly.
 - When you ``Get`` objects from the Scene that have modifiers on them, you can import the final mesh by enabling the ``Post`` button.
 - Importing Objects with a lot of geometry will decrease Sverchok tree update speed, be careful with any modifiers that produce a lot of extra geometry (like subdivision modifier)
 - The Matrix socket lets you ignore or acquire the Object's ``World Matrix``, by default the Object data is untransformed. Use a matrix-apply node if you want to explicitly transform the vertex data.
+- add selected objects from scene into the list individually:
+
+  .. image:: https://github.com/user-attachments/assets/827589d4-13ca-4523-b0eb-0380932d8260
+    :target: https://github.com/user-attachments/assets/827589d4-13ca-4523-b0eb-0380932d8260
+
+- move objects in list up and down:
+
+  .. image:: https://github.com/user-attachments/assets/7e1c2fee-e757-4523-a0b4-3659e5d3a851
+    :target: https://github.com/user-attachments/assets/7e1c2fee-e757-4523-a0b4-3659e5d3a851
+
+- enable/disable objects in list to exclude some objects from process:
+
+  .. image:: https://github.com/user-attachments/assets/1daefd0b-bda2-46b7-930f-41457873684f
+    :target: https://github.com/user-attachments/assets/1daefd0b-bda2-46b7-930f-41457873684f
+
+  This work for collections too:
+
+    .. image:: https://github.com/user-attachments/assets/32446a11-cffe-4e75-9b27-da7e2791b8fb
+      :target: https://github.com/user-attachments/assets/32446a11-cffe-4e75-9b27-da7e2791b8fb
+
+- select objects or collections in scene by operator in list. Use Shift key to append object into selection set
+
+  .. raw:: html
+
+    <video width="700" controls>
+      <source src="https://github.com/user-attachments/assets/d4bd813f-a9c2-488e-b7fc-e9251ac61af5" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+
+- Find active object in list. If object is in collection then active position will be switched on duplicates or collections that has this object
+
+  .. raw:: html
+
+    <video width="700" controls>
+      <source src="https://github.com/user-attachments/assets/2e43c672-93f5-4bdf-bf31-8da6720ffafe" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+
+- duplicates objects can be marked with a sign (for active object in list):
+
+  .. image:: https://github.com/user-attachments/assets/41b112c4-4688-4214-9cff-f5191e8a456f
+    :target: https://github.com/user-attachments/assets/41b112c4-4688-4214-9cff-f5191e8a456f
+
+- add collections into the list (1-add empty pointer, 2-open list of collections in this scene, 3-select collection):
+
+  .. image:: https://github.com/user-attachments/assets/8a026341-8ec3-48ce-98aa-06e339cabce5
+    :target: https://github.com/user-attachments/assets/8a026341-8ec3-48ce-98aa-06e339cabce5
 
 limitations:
 
@@ -36,11 +83,36 @@ limitations:
 
 - We have Bezier-in and NURBS-in nodes if you want to get Curve data from Scene objects, instead of Mesh. 
 
+Simplify node view
+------------------
+
+This node can be very large. If you have no plans to use all sockets then you can hide unused socket:
+
+  .. image:: https://github.com/user-attachments/assets/55a8b530-b822-41f4-8ed7-4260ef455be9
+    :target: https://github.com/user-attachments/assets/55a8b530-b822-41f4-8ed7-4260ef455be9
+
+Also you can simplify table view ob objects:
+
+  .. image:: https://github.com/user-attachments/assets/9ebe3a1f-783b-4a07-a4cf-aa121db8115c
+    :target: https://github.com/user-attachments/assets/9ebe3a1f-783b-4a07-a4cf-aa121db8115c
+
+Additionally
+------------
+
+- You can see objects info in description of elements on mouse hover:
+
+  .. image:: https://github.com/user-attachments/assets/5afb43b4-7651-4d03-9dc8-14b291bf7ca3
+    :target: https://github.com/user-attachments/assets/5afb43b4-7651-4d03-9dc8-14b291bf7ca3
+
+- Added Metaball and Point Cloud
+
 Inputs
 ------
 
-Objects Socket
+Objects Socket. You can select object or link to Collection picker node to select a collection:
 
+  .. image:: https://github.com/user-attachments/assets/f3c654c2-51c1-4d06-aee8-e02ec88bc747
+    :target: https://github.com/user-attachments/assets/f3c654c2-51c1-4d06-aee8-e02ec88bc747
 
 Parameters
 ----------
@@ -105,6 +177,8 @@ Outputs
 +-----------------------+--------------------------------------------------------------------------+
 | Material Idx          | Material indexes per object face.                                        |
 +-----------------------+--------------------------------------------------------------------------+
+| Material Names        | Material names per object face.                                          |
++-----------------------+--------------------------------------------------------------------------+
 | Polygons Areas        | Area of Polygons of objects.                                             |
 +-----------------------+--------------------------------------------------------------------------+
 | Polygons Centers      | Polygons Center of objects.                                              |
@@ -117,6 +191,27 @@ Outputs
 +-----------------------+--------------------------------------------------------------------------+
 
 It can output Numpy arrays of vertices and edges if enabled on N-panel properties (makes node faster)
+
+About Material Idx and Material Names
+-------------------------------------
+
+Initially, these parameters produce results according to the materials in the corresponding material sockets of the object.
+When the node parameters “Mesh Join” and “Post” are enabled, the material indices are combined, duplicate materials are removed,
+the Material Names are sorted alphabetically, and the Material Idx values are renumbered according to each material name’s
+position after sorting. If a material is not assigned but is used by some Faces, this material is treated as None, and during
+the sorting of Material Names, the value None is placed at the end of the sorted list.
+
+Before Mesh Join:
+
+  .. image:: https://github.com/user-attachments/assets/fca3b1de-9e39-4bae-91ba-e688643a9dcd
+    :target: https://github.com/user-attachments/assets/fca3b1de-9e39-4bae-91ba-e688643a9dcd
+
+After Mesh Join:
+
+  .. image:: https://github.com/user-attachments/assets/2ade627a-a965-478e-9ee6-e3b6b3c6964b
+    :target: https://github.com/user-attachments/assets/2ade627a-a965-478e-9ee6-e3b6b3c6964b
+
+Material Idx can be used to calculate the area of materials.
 
 Examples
 --------

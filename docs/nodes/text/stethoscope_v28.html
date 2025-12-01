@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Stethoscope &#8212; Sverchok 1, 2, 0 documentation</title>
+    <title>Stethoscope &#8212; Sverchok 1, 4, 0 documentation</title>
   
   
   
@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=80221c76"></script>
+    <script src="../../_static/documentation_options.js?v=c14129a0"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -138,8 +138,8 @@
       
     
     
-    <img src="../../_static/title_big_b.svg" class="logo__image only-light" alt="Sverchok 1, 2, 0 documentation - Home"/>
-    <script>document.write(`<img src="../../_static/title_big_b.svg" class="logo__image only-dark" alt="Sverchok 1, 2, 0 documentation - Home"/>`);</script>
+    <img src="../../_static/title_big_b.svg" class="logo__image only-light" alt="Sverchok 1, 4, 0 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/title_big_b.svg" class="logo__image only-dark" alt="Sverchok 1, 4, 0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -209,6 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../pulga_physics/pulga_physics_index.html">Pulga Physics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../exchange/exchange_index.html">Exchange</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../svg/svg_index.html">SVG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dxf/dxf_index.html">DXF</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorials.html">Tutorials</a></li>
@@ -381,6 +382,8 @@ document.write(`
                   
   <section id="stethoscope">
 <h1>Stethoscope<a class="headerlink" href="#stethoscope" title="Link to this heading">#</a></h1>
+<a class="reference external image-reference" href="https://github.com/user-attachments/assets/0868ac63-7635-4058-9654-a970e650a191"><img alt="https://github.com/user-attachments/assets/0868ac63-7635-4058-9654-a970e650a191" src="https://github.com/user-attachments/assets/0868ac63-7635-4058-9654-a970e650a191" />
+</a>
 <section id="functionality">
 <h2>Functionality<a class="headerlink" href="#functionality" title="Link to this heading">#</a></h2>
 <p>The Node is designed to give a general sense of the connected data stream. After a short preprocessing step Stethoscope draws the data directly to the Node view.</p>
@@ -391,11 +394,13 @@ document.write(`
 The data in between is dropped and represented by
 placeholder ellipses.</p></td>
 </tr>
-<tr class="row-even"><td><p>Float values are rounded if possible.</p></td>
+<tr class="row-even"><td><p>Float, Matrix, Integers and Boolean values are rounded if possible.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<a class="reference external image-reference" href="https://github.com/user-attachments/assets/33b3d67f-bd08-4f73-ad98-1341c8faadca"><img alt="https://github.com/user-attachments/assets/33b3d67f-bd08-4f73-ad98-1341c8faadca" src="https://github.com/user-attachments/assets/33b3d67f-bd08-4f73-ad98-1341c8faadca" />
+</a>
 </section>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
@@ -403,10 +408,16 @@ placeholder ellipses.</p></td>
 </section>
 <section id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h2>
-<ul class="simple">
+<ul>
 <li><p>Currently a <em>visibility</em> toggle and <em>text drawing color</em> chooser.</p></li>
-<li><p>The Rounding parameter is useful to restrict the significant digit information for floats and vectors.</p></li>
+<li><p>The Precision parameter is useful to restrict the significant digit information for floats and vectors.</p></li>
 <li><p>Setting the Rounding value to <cite>0</cite> will turn off any string-formatted rounding techniques, this is useful for example quickly looking at object names.</p></li>
+<li><p>Selecting monospace fonts allow to show aligned columns of digits</p>
+<blockquote>
+<div><a class="reference external image-reference" href="https://github.com/user-attachments/assets/a5e59345-485d-40f0-9976-260d75fd7c74"><img alt="https://github.com/user-attachments/assets/a5e59345-485d-40f0-9976-260d75fd7c74" src="https://github.com/user-attachments/assets/a5e59345-485d-40f0-9976-260d75fd7c74" />
+</a>
+</div></blockquote>
+</li>
 </ul>
 </section>
 <section id="outputs">
@@ -418,7 +429,13 @@ placeholder ellipses.</p></td>
 </section>
 <section id="notes">
 <h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
-<p>Implementation is <code class="docutils literal notranslate"><span class="pre">POST_PIXEL</span></code> using <code class="docutils literal notranslate"><span class="pre">bgl</span></code> and <code class="docutils literal notranslate"><span class="pre">blf</span></code></p>
+<ul>
+<li><p>preload Sverchok fonts:</p>
+<a class="reference external image-reference" href="https://github.com/user-attachments/assets/2e96681c-5cd2-4029-86be-6a017549503b"><img alt="https://github.com/user-attachments/assets/2e96681c-5cd2-4029-86be-6a017549503b" src="https://github.com/user-attachments/assets/2e96681c-5cd2-4029-86be-6a017549503b" />
+</a>
+</li>
+<li><p>Implementation is <code class="docutils literal notranslate"><span class="pre">POST_PIXEL</span></code> using <code class="docutils literal notranslate"><span class="pre">bgl</span></code> and <code class="docutils literal notranslate"><span class="pre">blf</span></code></p></li>
+</ul>
 </section>
 </section>
 

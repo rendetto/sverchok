@@ -146,6 +146,12 @@ This node has the following parameters:
     vectors.                                         
   * **Track normal**: try to maintain constant normal direction by tracking it along the curve.
 
+* **Use path tangents**. If checked, the node will consider tangents of the
+  Path curve when creating the shape of the Sweep surface. This creates
+  surfaces that follow Path curve more precisely even with lower values of **V
+  Sections** parameter. If not checked, the node will just generate a loft
+  surface through profile curves placed along the path curve. Unchecked by
+  default.
 * **Explicit V Values**. If checked, then the user has the ability to provide
   values of path curve's parameter values, at which the provided path curves
   must be placed; otherwise, the node will calculate these parameters
@@ -167,6 +173,15 @@ This node has the following parameters:
   faster, and any following nodes working with the generated surface will work
   faster; but **Average** mode is less universal, and in many cases it gives
   less precise interpolations. The default value is **Unify**.
+
+* **Knotvector accuracy**. This parameter is available in the N panel only.
+  Accuracy (number of exact digits after decimal points) to be used for
+  knotvector unification algorithm. The default value is 6. Usually you do not
+  have to modify this parameter; but, if your curves have a lot of control
+  points (like, hundreds of them), or if knot values in curves knotvectors are
+  very near one another, you may wish to reduce accuracy in order to reduce the
+  number of control points in the resulting surface (the result will be less
+  precise, but will work faster).
 
 * **Metric**. This parameter is available in the N panel only. Distance type
   used for interpolation along V direction. The available values are:
@@ -207,4 +222,18 @@ Two Profile curves:
 Three Profile curves:
 
 .. image:: https://user-images.githubusercontent.com/284644/93505300-1be79980-f934-11ea-9b0b-71d150312ca2.png
+
+Example with low value of V Sections parameter. Note that the surface follows
+the path curve very loosely.
+
+.. image:: https://github.com/user-attachments/assets/c15a52ba-d6ed-4ded-9162-bea7971597ae
+  :target: https://github.com/user-attachments/assets/c15a52ba-d6ed-4ded-9162-bea7971597ae
+
+The same setup, with the same value of V Sections parameter, but with **Use
+path tangents** parameter enabled:
+
+.. image:: https://github.com/user-attachments/assets/1b34098e-6573-4e99-94eb-d5b3e54295c6
+  :target: https://github.com/user-attachments/assets/1b34098e-6573-4e99-94eb-d5b3e54295c6
+
+Now more control points are generated, but the surface follows the path much more accurately.
 
