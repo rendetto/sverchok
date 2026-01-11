@@ -450,6 +450,7 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="nodes/curve/line.html">Line (Curve)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/curve/marching_squares.html">Marching Squares</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/curve/marching_squares_on_surface.html">Marching Squares on Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nodes/curve/monotone_spline.html">Monotone Spline</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/curve/move_nurbs_curve_point.html">Move NURBS Curve Point</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/curve/nearest_point.html">Nearest Point on Curve</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/curve/nurbs_curve.html">Build NURBS Curve</a></li>
@@ -482,6 +483,7 @@ document.write(`
 </li>
 <li class="toctree-l1"><a class="reference internal" href="nodes/surface/surface_index.html">Surfaces</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nodes/surface/adaptive_tessellate.html">Adaptive Tessellate Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nodes/surface/adjust_nurbs_surface.html">Adjust NURBS Surface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/surface/apply_field_to_surface.html">Apply Field to Surface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/surface/approximate_nurbs_surface.html">Approximate NURBS Surface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/surface/blend_surface.html">Blend Surfaces</a></li>
@@ -789,6 +791,7 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="nodes/CAD/inset_special_mk2.html">Inset Special</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/CAD/merge_mesh_2d.html">Merge Mesh 2d</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/CAD/merge_mesh_2d_lite.html">Merge mesh 2D lite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nodes/CAD/spyrrow_nester.html">Spyrrow Nester</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/CAD/straight_skeleton_2d_extrude.html">Straight Skeleton 2d Extrude (Alpha)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/CAD/straight_skeleton_2d_offset.html">Straight Skeleton 2d Offset (Alpha)</a></li>
 </ul>
@@ -867,7 +870,6 @@ document.write(`
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="nodes/logic/logic_index.html">Logic</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nodes/logic/custom_switcher.html">Custom switcher</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/logic/evolver.html">Evolver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/logic/genes_holder.html">Genes Holder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/logic/input_switch_mod.html">Input Switch</a></li>
@@ -877,6 +879,7 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="nodes/logic/neuro_elman.html">Neuro Elman 1 Layer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/logic/range_switch.html">Range Switch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/logic/switch_MK2.html">Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nodes/logic/switcher_mk2.html">Custom switcher</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="nodes/list_main/list_main_index.html">List Main</a><ul>
@@ -1066,6 +1069,7 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="nodes/exchange/bezier_in.html">Bezier Input</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/exchange/export_rw3dm_json.html">NURBS to JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/exchange/gcode_exporter.html">Export G-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nodes/exchange/glb_exporter_viewer.html">Export GLB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/exchange/import_rw3dm_json.html">JSON to NURBS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/exchange/nurbs_in.html">NURBS Input</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nodes/exchange/receive_from_sorcar.html">Receive From Sorcar</a></li>
@@ -1146,7 +1150,7 @@ By Author name not set
 
   <p class="copyright">
     
-      © Copyright 2014...2025, sverchok team.
+      © Copyright 2014...2026, sverchok team.
       <br/>
     
   </p>
